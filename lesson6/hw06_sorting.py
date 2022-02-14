@@ -7,40 +7,10 @@ from pathlib import Path
 
 def create_new_folder(path):
     try:
-        os.makedirs(new_archive_path)
+        os.makedirs(path)
 
-    except FileExistsError:
-        pass
-
-    try:
-        os.makedirs(new_audio_path)
-
-    except FileExistsError:
-        pass
-
-    try:
-        os.makedirs(new_doc_path)
-
-    except FileExistsError:
-        pass
-
-    try:
-        os.makedirs(new_picture_path)
-
-    except FileExistsError:
-        pass
-
-    try:
-        os.makedirs(new_unknown_types_path)
-
-    except FileExistsError:
-        pass
-
-    try:
-        os.makedirs(new_video_path)
-
-    except FileExistsError:
-        pass
+    except FileExistsError as e:
+        print('New folder is created...')
 
 
 def del_empty_dirs(folders_list):
@@ -52,8 +22,8 @@ def del_empty_dirs(folders_list):
             try:
                 shutil.rmtree(folder_name)
 
-            except:
-                pass
+            except Exception as e:
+                print(e)
 
 
 def files_and_folders_sort(path):
@@ -73,6 +43,22 @@ def files_and_folders_sort(path):
 
             join_path = os.path.join(path, file)
             files_and_folders_sort(join_path)
+
+
+def get_path():
+    try:
+        arg_path = sys.argv[1]
+        print(f"Sorting start in {arg_path}")
+
+    except IndexError as e:
+        print(f'{e}, you didn\'t pass the path as an argument')
+        return None
+
+    except Exception as e:
+        print(f'{e}, you didn\'t pass the path as an argument')
+        return None
+
+    return arg_path
 
 
 def normalize(sentence):
@@ -100,6 +86,11 @@ def normalize(sentence):
     return result_sentence
 
 
+def moving_file(new_path, new_file_name, file):
+    new_file = f'{new_path}{new_file_name}'
+    shutil.move(file, new_file)
+
+
 def move_and_rename_files(files_path_to_replace):
     for file in files_path_to_replace:
 
@@ -108,112 +99,86 @@ def move_and_rename_files(files_path_to_replace):
         name = normalize(file[file.rfind('\\') + 1:file.rfind('.')])
         rename_file = f'\\{name}{end_word}'
 
-        if file.endswith(type_for_archive):
-            archive_name_folder = f'{new_archive_path}\\{name}'
+        for ind, extensions in enumerate(NOTABLE_EXTENSIONS):
+            if file.endswith(extensions) and extensions == TYPE_FOR_ARCHIVE:
 
-            try:
-                os.makedirs(archive_name_folder)
-            except FileExistsError:
-                pass
+                archive_name_folder = f'{new_archive_path}\\{name}'
+                create_new_folder(archive_name_folder)
 
-            try:
-                shutil.unpack_archive(file, archive_name_folder)
-            except:
-                pass
+                try:
+                    shutil.unpack_archive(file, archive_name_folder)
+                except Exception as e:
+                    print(e)
 
-            new_file = f'{new_archive_path}{rename_file}'
-            shutil.move(file, new_file)
+                moving_file(new_path_to_folders[-1], rename_file, file)
+                break
 
-        elif file.endswith(type_for_audio):
-            new_file = f'{new_audio_path}{rename_file}'
-            shutil.move(file, new_file)
-
-        elif file.endswith(type_for_doc):
-            new_file = f'{new_doc_path}{rename_file}'
-            shutil.move(file, new_file)
-
-        elif file.endswith(type_for_picture):
-            new_file = f'{new_picture_path}{rename_file}'
-            shutil.move(file, new_file)
-
-        elif file.endswith(type_for_video):
-            new_file = f'{new_video_path}{rename_file}'
-            shutil.move(file, new_file)
-
+            elif file.endswith(extensions):
+                moving_file(new_path_to_folders[ind], rename_file, file)
+                break
         else:
-            new_file = f'{new_unknown_types_path}{rename_file}'
-            shutil.move(file, new_file)
+            moving_file(new_path_to_folders[-1], rename_file, file)
 
 
 def sort_extensions(files_list):
     for file in files_list:
 
-        for _ in file:
-            dot_file = file.rfind('.')
-            all_extensions.add(file[dot_file:])
+        dot_file = file.rfind('.')
+        all_extensions.add(file[dot_file:])
 
-        if file.endswith(type_for_doc):
-            sorted_doc.append(file)
-
-        elif file.endswith(type_for_video):
-            sorted_video.append(file)
-
-        elif file.endswith(type_for_audio):
-            sorted_audio.append(file)
-
-        elif file.endswith(type_for_picture):
-            sorted_picture.append(file)
-
-        elif file.endswith(type_for_archive):
-            sorted_archive.append(file)
-
-        else:
-            sorted_unknown_types.append(file)
+        for ind, extensions in enumerate(NOTABLE_EXTENSIONS):
+            if file.endswith(extensions):
+                sorted_all_categories[ind].append(file)
+                break
 
 
 if __name__ == '__main__':
-    path = sys.argv[1]
-    print(f"Sorting start in {path}")
+    path = get_path()
 
-    empty_folder_list = []
-    files_list = []
-    files_path_to_replace = []
-    folders_list = []
-    folders_path_to_remove = []
+    if path:
+        empty_folder_list = []
+        files_list = []
+        files_path_to_replace = []
+        folders_list = []
 
-    type_for_doc = ('.pdf', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.ppt', '.pptx')
-    type_for_video = ('.avi', '.mp4', '.mov', '.mkv')
-    type_for_audio = ('.mp3', '.ogg', '.wav', '.amr')
-    type_for_picture = ('.jpeg', '.png', '.jpg', '.svg')
-    type_for_archive = ('.zip', '.gz', '.tar')
+        TYPE_FOR_AUDIO = ('.mp3', '.ogg', '.wav', '.amr')
+        TYPE_FOR_ARCHIVE = ('.zip', '.gz', '.tar')
+        TYPE_FOR_DOC = ('.pdf', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.ppt', '.pptx')
+        TYPE_FOR_PICTURE = ('.jpeg', '.png', '.jpg', '.svg')
+        TYPE_FOR_VIDEO = ('.avi', '.mp4', '.mov', '.mkv')
+        NOTABLE_EXTENSIONS = (TYPE_FOR_ARCHIVE, TYPE_FOR_AUDIO, TYPE_FOR_DOC, TYPE_FOR_PICTURE, TYPE_FOR_VIDEO)
 
-    all_extensions = set()
-    sorted_archive = []
-    sorted_audio = []
-    sorted_doc = []
-    sorted_picture = []
-    sorted_unknown_types = []
-    sorted_video = []
+        all_extensions = set()
+        sorted_archive = []
+        sorted_audio = []
+        sorted_doc = []
+        sorted_picture = []
+        sorted_unknown_types = []
+        sorted_video = []
+        sorted_all_categories = (sorted_archive, sorted_audio, sorted_doc, sorted_picture, sorted_video, sorted_unknown_types)
 
-    sort_dirs = ['Sorted files']
-    new_archive_path = os.path.join(path, 'Sorted files\\Archive')
-    new_audio_path = os.path.join(path, 'Sorted files\\Audio')
-    new_doc_path = os.path.join(path, 'Sorted files\\Document')
-    new_picture_path = os.path.join(path, 'Sorted files\\Picture')
-    new_unknown_types_path = os.path.join(path, 'Sorted files\\Unknown types')
-    new_video_path = os.path.join(path, 'Sorted files\\Video')
+        new_archive_path = os.path.join(path, 'Sorted files\\Archive')
+        new_audio_path = os.path.join(path, 'Sorted files\\Audio')
+        new_doc_path = os.path.join(path, 'Sorted files\\Document')
+        new_picture_path = os.path.join(path, 'Sorted files\\Picture')
+        new_unknown_types_path = os.path.join(path, 'Sorted files\\Unknown types')
+        new_video_path = os.path.join(path, 'Sorted files\\Video')
 
-    create_new_folder(path)
-    files_and_folders_sort(path)
-    sort_extensions(files_list)
-    move_and_rename_files(files_path_to_replace)
-    del_empty_dirs(empty_folder_list)
+        new_path_to_folders = (new_archive_path, new_audio_path, new_doc_path, new_picture_path, new_video_path, new_unknown_types_path)
 
-    print('\n\t-== Folder sorting result ==-\n')
-    print(f'Document files:\n{sorted_doc}\n')
-    print(f'Video files:\n{sorted_video}\n')
-    print(f'Audio files:\n{sorted_audio}\n')
-    print(f'Picture files:\n{sorted_picture}\n')
-    print(f'Archive files:\n{sorted_archive}\n')
-    print(f'Other types:\n{sorted_unknown_types}\n')
-    print(f'All extensions in your folder:\n{list(all_extensions)}')
+        for new_path in new_path_to_folders:
+            create_new_folder(new_path)
+
+        files_and_folders_sort(path)
+        sort_extensions(files_list)
+        move_and_rename_files(files_path_to_replace)
+        del_empty_dirs(empty_folder_list)
+
+        print('\n\t-== Folder sorting result ==-\n')
+        print(f'Document files:\n{sorted_doc}\n')
+        print(f'Video files:\n{sorted_video}\n')
+        print(f'Audio files:\n{sorted_audio}\n')
+        print(f'Picture files:\n{sorted_picture}\n')
+        print(f'Archive files:\n{sorted_archive}\n')
+        print(f'Other types:\n{sorted_unknown_types}\n')
+        print(f'All extensions in your folder:\n{list(all_extensions)}')
