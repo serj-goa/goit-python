@@ -86,6 +86,17 @@ def normalize(sentence):
     return result_sentence
 
 
+def main():
+    for new_path in NEW_PATH_TO_FOLDERS:
+        create_new_folder(new_path)
+
+    files_and_folders_sort(path)
+    sort_extensions(files_list)
+    move_and_rename_files(files_path_to_replace)
+    del_empty_dirs(empty_folder_list)
+    work_report(sorted_all_categories, all_extensions)
+
+
 def moving_file(new_path, new_file_name, file):
     new_file = f'{new_path}{new_file_name}'
     shutil.move(file, new_file)
@@ -102,7 +113,7 @@ def move_and_rename_files(files_path_to_replace):
         for ind, extensions in enumerate(NOTABLE_EXTENSIONS):
             if file.endswith(extensions) and extensions == TYPE_FOR_ARCHIVE:
 
-                archive_name_folder = f'{new_archive_path}\\{name}'
+                archive_name_folder = f'{NEW_ARCHIVE_PATH}\\{name}'
                 create_new_folder(archive_name_folder)
 
                 try:
@@ -110,14 +121,14 @@ def move_and_rename_files(files_path_to_replace):
                 except Exception as e:
                     print(e)
 
-                moving_file(new_path_to_folders[-1], rename_file, file)
+                moving_file(NEW_PATH_TO_FOLDERS[0], rename_file, file)
                 break
 
             elif file.endswith(extensions):
-                moving_file(new_path_to_folders[ind], rename_file, file)
+                moving_file(NEW_PATH_TO_FOLDERS[ind], rename_file, file)
                 break
         else:
-            moving_file(new_path_to_folders[-1], rename_file, file)
+            moving_file(NEW_PATH_TO_FOLDERS[-1], rename_file, file)
 
 
 def sort_extensions(files_list):
@@ -130,6 +141,19 @@ def sort_extensions(files_list):
             if file.endswith(extensions):
                 sorted_all_categories[ind].append(file)
                 break
+        else:
+            sorted_all_categories[-1].append(file)
+
+
+def work_report(sorted_all_categories, all_extensions):
+    print('\n\t-== Folder sorting result ==-\n')
+    print(f'Document files:\n{sorted_all_categories[2]}\n')
+    print(f'Video files:\n{sorted_all_categories[4]}\n')
+    print(f'Audio files:\n{sorted_all_categories[1]}\n')
+    print(f'Picture files:\n{sorted_all_categories[3]}\n')
+    print(f'Archive files:\n{sorted_all_categories[0]}\n')
+    print(f'Other types:\n{sorted_all_categories[-1]}\n')
+    print(f'All extensions in your folder:\n{list(all_extensions)}')
 
 
 if __name__ == '__main__':
@@ -157,28 +181,13 @@ if __name__ == '__main__':
         sorted_video = []
         sorted_all_categories = (sorted_archive, sorted_audio, sorted_doc, sorted_picture, sorted_video, sorted_unknown_types)
 
-        new_archive_path = os.path.join(path, 'Sorted files\\Archive')
-        new_audio_path = os.path.join(path, 'Sorted files\\Audio')
-        new_doc_path = os.path.join(path, 'Sorted files\\Document')
-        new_picture_path = os.path.join(path, 'Sorted files\\Picture')
-        new_unknown_types_path = os.path.join(path, 'Sorted files\\Unknown types')
-        new_video_path = os.path.join(path, 'Sorted files\\Video')
+        NEW_ARCHIVE_PATH = os.path.join(path, 'Sorted files\\Archive')
+        NEW_AUDIO_PATH = os.path.join(path, 'Sorted files\\Audio')
+        NEW_DOC_PATH = os.path.join(path, 'Sorted files\\Document')
+        NEW_PICTURE_PATH = os.path.join(path, 'Sorted files\\Picture')
+        NEW_UNKNOWN_TYPES_PATH = os.path.join(path, 'Sorted files\\Unknown types')
+        NEW_VIDEO_PATH = os.path.join(path, 'Sorted files\\Video')
 
-        new_path_to_folders = (new_archive_path, new_audio_path, new_doc_path, new_picture_path, new_video_path, new_unknown_types_path)
+        NEW_PATH_TO_FOLDERS = (NEW_ARCHIVE_PATH, NEW_AUDIO_PATH, NEW_DOC_PATH, NEW_PICTURE_PATH, NEW_VIDEO_PATH, NEW_UNKNOWN_TYPES_PATH)
 
-        for new_path in new_path_to_folders:
-            create_new_folder(new_path)
-
-        files_and_folders_sort(path)
-        sort_extensions(files_list)
-        move_and_rename_files(files_path_to_replace)
-        del_empty_dirs(empty_folder_list)
-
-        print('\n\t-== Folder sorting result ==-\n')
-        print(f'Document files:\n{sorted_doc}\n')
-        print(f'Video files:\n{sorted_video}\n')
-        print(f'Audio files:\n{sorted_audio}\n')
-        print(f'Picture files:\n{sorted_picture}\n')
-        print(f'Archive files:\n{sorted_archive}\n')
-        print(f'Other types:\n{sorted_unknown_types}\n')
-        print(f'All extensions in your folder:\n{list(all_extensions)}')
+        main()
