@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-def create_new_folder(path):
+def create_new_folder(path: str) -> None:
     try:
         os.makedirs(path)
 
@@ -13,7 +13,7 @@ def create_new_folder(path):
         print('New folder is created...')
 
 
-def del_empty_dirs(folders_list):
+def del_empty_dirs(folders_list: list) -> None:
     for f in folders_list:
         folder_name = Path(f)
 
@@ -26,7 +26,7 @@ def del_empty_dirs(folders_list):
                 print(e)
 
 
-def files_and_folders_sort(path):
+def files_and_folders_sort(path: str) -> None:
     user_folders = os.listdir(path)
 
     for file in user_folders:
@@ -45,7 +45,7 @@ def files_and_folders_sort(path):
             files_and_folders_sort(join_path)
 
 
-def get_path():
+def get_path() -> str or None:
     try:
         arg_path = sys.argv[1]
         print(f"Sorting start in {arg_path}")
@@ -61,7 +61,7 @@ def get_path():
     return arg_path
 
 
-def normalize(sentence):
+def normalize(sentence: str) -> str:
     letter_dict = {ord('а'): 'a', ord('А'): 'A', ord('б'): 'b', ord('Б'): 'B',
                    ord('в'): 'v', ord('В'): 'V', ord('г'): 'g', ord('Г'): 'G',
                    ord('д'): 'd', ord('Д'): 'D', ord('е'): 'e', ord('Е'): 'E',
@@ -97,12 +97,12 @@ def main():
     work_report(sorted_all_categories, all_extensions)
 
 
-def moving_file(new_path, new_file_name, file):
+def moving_file(new_path: str, new_file_name: str, file: str) -> None:
     new_file = f'{new_path}{new_file_name}'
     shutil.move(file, new_file)
 
 
-def move_and_rename_files(files_path_to_replace):
+def move_and_rename_files(files_path_to_replace: list) -> None:
     for file in files_path_to_replace:
 
         end_word = file[file.rfind('.'):]
@@ -131,7 +131,7 @@ def move_and_rename_files(files_path_to_replace):
             moving_file(NEW_PATH_TO_FOLDERS[-1], rename_file, file)
 
 
-def sort_extensions(files_list):
+def sort_extensions(files_list: list) -> None:
     for file in files_list:
 
         dot_file = file.rfind('.')
@@ -145,7 +145,7 @@ def sort_extensions(files_list):
             sorted_all_categories[-1].append(file)
 
 
-def work_report(sorted_all_categories, all_extensions):
+def work_report(sorted_all_categories: tuple, all_extensions: set) -> None:
     print('\n\t-== Folder sorting result ==-\n')
     print(f'Document files:\n{sorted_all_categories[2]}\n')
     print(f'Video files:\n{sorted_all_categories[4]}\n')
@@ -167,10 +167,12 @@ if __name__ == '__main__':
 
         TYPE_FOR_AUDIO = ('.mp3', '.ogg', '.wav', '.amr')
         TYPE_FOR_ARCHIVE = ('.zip', '.gz', '.tar')
-        TYPE_FOR_DOC = ('.pdf', '.doc', '.docx', '.txt', '.xls', '.xlsx', '.ppt', '.pptx')
+        TYPE_FOR_DOC = ('.pdf', '.doc', '.docx', '.txt',
+                        '.xls', '.xlsx', '.ppt', '.pptx')
         TYPE_FOR_PICTURE = ('.jpeg', '.png', '.jpg', '.svg')
         TYPE_FOR_VIDEO = ('.avi', '.mp4', '.mov', '.mkv')
-        NOTABLE_EXTENSIONS = (TYPE_FOR_ARCHIVE, TYPE_FOR_AUDIO, TYPE_FOR_DOC, TYPE_FOR_PICTURE, TYPE_FOR_VIDEO)
+        NOTABLE_EXTENSIONS = (TYPE_FOR_ARCHIVE, TYPE_FOR_AUDIO,
+                              TYPE_FOR_DOC, TYPE_FOR_PICTURE, TYPE_FOR_VIDEO)
 
         all_extensions = set()
         sorted_archive = []
@@ -179,15 +181,18 @@ if __name__ == '__main__':
         sorted_picture = []
         sorted_unknown_types = []
         sorted_video = []
-        sorted_all_categories = (sorted_archive, sorted_audio, sorted_doc, sorted_picture, sorted_video, sorted_unknown_types)
+        sorted_all_categories = (sorted_archive, sorted_audio, sorted_doc,
+                                 sorted_picture, sorted_video, sorted_unknown_types)
 
         NEW_ARCHIVE_PATH = os.path.join(path, 'Sorted files\\Archive')
         NEW_AUDIO_PATH = os.path.join(path, 'Sorted files\\Audio')
         NEW_DOC_PATH = os.path.join(path, 'Sorted files\\Document')
         NEW_PICTURE_PATH = os.path.join(path, 'Sorted files\\Picture')
-        NEW_UNKNOWN_TYPES_PATH = os.path.join(path, 'Sorted files\\Unknown types')
+        NEW_UNKNOWN_TYPES_PATH = os.path.join(
+            path, 'Sorted files\\Unknown types')
         NEW_VIDEO_PATH = os.path.join(path, 'Sorted files\\Video')
 
-        NEW_PATH_TO_FOLDERS = (NEW_ARCHIVE_PATH, NEW_AUDIO_PATH, NEW_DOC_PATH, NEW_PICTURE_PATH, NEW_VIDEO_PATH, NEW_UNKNOWN_TYPES_PATH)
+        NEW_PATH_TO_FOLDERS = (NEW_ARCHIVE_PATH, NEW_AUDIO_PATH, NEW_DOC_PATH,
+                               NEW_PICTURE_PATH, NEW_VIDEO_PATH, NEW_UNKNOWN_TYPES_PATH)
 
         main()
