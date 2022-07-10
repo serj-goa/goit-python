@@ -5,14 +5,17 @@ import shutil
 import sys
 
 
-def create_folder(path: str, folders_name: iter) -> None:
-    for folder_name in folders_name:
-        folder_path = os.path.join(path, folder_name)
+def add_extension_to_set_by_print(suffix: str) -> None:
+    for ext in ALL_TYPES.values():
+        if suffix in ext:
+            all_famous_extensions.add(suffix)
+            return
+    unknown_extensions.add(suffix)
 
-        try:
-            os.mkdir(folder_path)
-        except FileExistsError:
-            print(f'Folder {folder_name} is exists')
+
+def create_folder(path: str, folder_names: iter) -> None:
+    for folder_name in folder_names:
+        os.makedirs(path / folder_name, exist_ok=True)
 
 
 def deleting_files_and_folders(path: str, exclusion_folders: iter) -> None:
@@ -24,23 +27,26 @@ def deleting_files_and_folders(path: str, exclusion_folders: iter) -> None:
 
 
 def get_folder_by_type(suffix: str) -> str:
-    for folder in ALL_TYPES.keys():
-        if suffix in ALL_TYPES[folder]:
+    for folder, extentions in ALL_TYPES.items():
+        if suffix in extentions:
             return folder
-    return 'Unknown'
+        if not len(extentions):
+            unknown_ext = folder
+    return unknown_ext
 
 
-def get_path() -> str or None:
+def get_path() -> str:
     try:
         path_argv = sys.argv[1]
     except IndexError:
         print('Please add sorting path!')
+        quit()
 
-    if pathlib.Path(path_argv).is_dir():
-        return pathlib.Path(path_argv)
+    if not pathlib.Path(path_argv).is_dir():
+        print('Incorrect path. Please add valid path!')
+        quit()
 
-    print('Incorrect path. Please add valid path!')
-    return None
+    return pathlib.Path(path_argv)
 
 
 def get_valid_uniq_name(path: str, name: str) -> str:
@@ -63,15 +69,13 @@ def is_exists_path(path: str) -> bool:
     return path.exists()
 
 
-def iterate_over_folder(path: str) -> list:
-    global all_files_in_path
+def iterate_over_folder(user_folder_path: str) -> list:
+    for path in user_folder_path.iterdir():
+        if path.is_dir():
+            iterate_over_folder(path)
 
-    for p in path.iterdir():
-        if p.is_dir():
-            iterate_over_folder(p)
-
-        elif p.is_file():
-            all_files_in_path.append(p)
+        elif path.is_file():
+            all_files_in_path.append(path)
 
     return all_files_in_path
 
@@ -133,25 +137,17 @@ def unpack_archive(file_path: str, folder_for_unpacking):
 
 
 def main(path: str) -> None:
-    all_famous_extensions = set()
-    unknown_extensions = set()
     sorted_files_by_category = dict()
     all_files_in_user_path = iterate_over_folder(path)
-
     sorting_folders_list = list(ALL_TYPES.keys())
     create_folder(MAIN_USER_PATH, sorting_folders_list)
 
     for file_path in all_files_in_user_path:
         file_extension = file_path.suffix
-        folder_name_for_moving_file = get_folder_by_type(file_extension)
-
-        if folder_name_for_moving_file != 'Unknown' and folder_name_for_moving_file in ALL_TYPES:
-            all_famous_extensions.add(file_extension)
-        else:
-            unknown_extensions.add(file_extension)
-
+        add_extension_to_set_by_print(file_extension)
         normalize_name = normalize(file_path.stem)
         new_file_name = normalize_name + file_extension
+        folder_name_for_moving_file = get_folder_by_type(file_extension)
         new_category_path = MAIN_USER_PATH / folder_name_for_moving_file
 
         if not folder_name_for_moving_file in sorted_files_by_category:
@@ -177,9 +173,6 @@ def main(path: str) -> None:
 if __name__ == '__main__':
     MAIN_USER_PATH = get_path()
 
-    if MAIN_USER_PATH is None:
-        quit()
-
     ALL_TYPES = {
         'Audio': ('.mp3', '.ogg', '.wav', '.amr'),
         'Archives': ('.zip', '.gz', '.tar'),
@@ -189,5 +182,7 @@ if __name__ == '__main__':
         'Unknown': tuple()
     }
     all_files_in_path = []
+    all_famous_extensions = set()
+    unknown_extensions = set()
 
     main(MAIN_USER_PATH)
