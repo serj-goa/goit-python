@@ -53,16 +53,16 @@ def command_change(user_data_list: list) -> None:
             phonebook[contact_name] = phone
 
 
-def command_close_program(*args) -> None:
+def command_close_program(_) -> None:
     print('Good bye!\n')
     quit()
 
 
-def command_hello(*args) -> None:
+def command_hello(_) -> None:
     print('How can I help you?\n')
 
 
-def command_help(*args) -> None:
+def command_help(_) -> None:
     print('''
 "hello"                      - greetings.
 "add <new_name> <new_phone>" - adding a new contact.
@@ -86,7 +86,7 @@ def command_phone(user_data_list: list) -> None:
             raise KeyError
 
 
-def command_show_all(*args) -> None:
+def command_show_all(_) -> None:
     print()
     for name, phone in phonebook.items():
         print(f'{name}: {phone}')
