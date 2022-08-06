@@ -1,3 +1,6 @@
+from tkinter.messagebox import NO
+
+
 def input_error(func):
     def inner(*args):
         try:
@@ -30,6 +33,7 @@ def command_add(user_data_list: list) -> None:
             raise ValueError
         else:
             phonebook[contact_name] = phone
+            return contact_name
 
 
 @input_error
@@ -51,6 +55,7 @@ def command_change(user_data_list: list) -> None:
             raise ValueError
         else:
             phonebook[contact_name] = phone
+            return contact_name
 
 
 def command_close_program(_) -> None:
@@ -91,6 +96,10 @@ def command_show_all(_) -> None:
     for name, phone in phonebook.items():
         print(f'{name}: {phone}')
     print()
+
+
+def confirmation_report(contact_name: str, user_command: tuple) -> None:
+    print(f'Contact {contact_name} {user_command} successful.\n')
 
 
 @input_error
@@ -155,7 +164,8 @@ def run_command(user_data_list: list) -> None:
         if PROGRAM_CMD.get(user_command) is None:
             raise IndexError
         else:
-            PROGRAM_CMD[user_command](user_data_list)
+            return_contact_name = PROGRAM_CMD[user_command](user_data_list)
+            return user_command, return_contact_name
 
 
 def main():
@@ -164,7 +174,9 @@ def main():
     while True:
         user_input = input('cmd >>> ').strip()
         user_data_list = parse_command_and_message(user_input)
-        run_command(user_data_list)
+        data_after_run_cmd = run_command(user_data_list)
+        if data_after_run_cmd and data_after_run_cmd[1] is not None:
+            confirmation_report(user_command=data_after_run_cmd[0], contact_name=data_after_run_cmd[1])
 
 
 if __name__ == '__main__':
