@@ -1,7 +1,7 @@
-from tkinter.messagebox import NO
-
-
 def input_error(func):
+    """
+    Generic Exception Handler.
+    """
     def inner(*args):
         try:
             return func(*args)
@@ -16,6 +16,9 @@ def input_error(func):
 
 @input_error
 def command_add(user_data_list: list) -> None:
+    """
+    Adding a new contact to the phone book.
+    """
     if not user_data_list[1]:
         raise KeyError
     else:
@@ -38,6 +41,9 @@ def command_add(user_data_list: list) -> None:
 
 @input_error
 def command_change(user_data_list: list) -> None:
+    """
+    Change an existing contact in the phone book.
+    """
     if not user_data_list[1]:
         raise KeyError
     else:
@@ -80,6 +86,9 @@ def command_help(_) -> None:
 
 @input_error
 def command_phone(user_data_list: list) -> None:
+    """
+    Search for an existing contact in the phone book.
+    """
     if not user_data_list[1]:
         raise KeyError
     else:
@@ -92,6 +101,9 @@ def command_phone(user_data_list: list) -> None:
 
 
 def command_show_all(_) -> None:
+    """
+    Display all existing contacts in the phone book.
+    """
     print()
     for name, phone in phonebook.items():
         print(f'{name}: {phone}')
@@ -99,11 +111,17 @@ def command_show_all(_) -> None:
 
 
 def confirmation_report(contact_name: str, user_command: tuple) -> None:
+    """
+    Report on the successful addition or change of contact details.
+    """
     print(f'Contact {contact_name} {user_command} successful.\n')
 
 
 @input_error
 def get_command(some_data: list) -> str:
+    """
+    Getting a user command.
+    """
     if not some_data[0]:
         raise IndexError
     else:
@@ -113,6 +131,9 @@ def get_command(some_data: list) -> str:
 
 @input_error
 def get_message(some_data: list) -> str:
+    """
+    Receiving data (name, phone) transferred by the user.
+    """
     if not some_data[1]:
         raise IndexError
     else:
@@ -122,6 +143,9 @@ def get_message(some_data: list) -> str:
 
 @input_error
 def get_contact_name(some_string: str) -> str:
+    """
+    Getting the name from the data passed by the user.
+    """
     data_lst = some_string.rsplit(' ', 1)
     if len(data_lst) >= 1:
         if not data_lst[-1].isalpha():
@@ -134,6 +158,9 @@ def get_contact_name(some_string: str) -> str:
 
 
 def get_contact_phone(some_string: str) -> str:
+    """
+    Getting the phone from the data transmitted by the user.
+    """
     data_lst = some_string.rsplit(' ', 1)
     if len(data_lst) > 1:
         phone = data_lst[1]
@@ -141,6 +168,9 @@ def get_contact_phone(some_string: str) -> str:
 
 
 def parse_command_and_message(user_input: str) -> list:
+    """
+    Receiving command and data (name, phone) sent by the user.
+    """
     separator = ' '
     for cmd in PROGRAM_CMD:
         if user_input.lower().startswith(cmd):
@@ -156,6 +186,9 @@ def parse_command_and_message(user_input: str) -> list:
 
 @input_error
 def run_command(user_data_list: list) -> None:
+    """
+    Run a command received from the user.
+    """
     if not user_data_list[0]:
         raise IndexError
     else:
