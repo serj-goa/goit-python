@@ -1,4 +1,5 @@
-from phonebook import AddressBook, Name, Phone, Record
+from typing import List
+from phonebook import AddressBook, Birthday, Name, Phone, Record
 
 
 def input_error(func):
@@ -17,6 +18,24 @@ def input_error(func):
     return inner
 
 
+def change_exist_contact(contact_name: str, exist_record: Record) -> bool:
+    """
+    Requests permission to change data from an existing contact.
+    """
+    print(f'\nContact {contact_name} is exist!')
+    print(exist_record)
+
+    print(f'\nDo you want to change it? (yes/no)')
+    change_contact = input('>>> ').strip().lower()
+
+    is_change = False
+
+    if change_contact in ('yes', 'y'):
+        is_change = True
+
+    return is_change
+
+
 @input_error
 def command_add(user_data_list: list) -> str:
     """
@@ -25,32 +44,71 @@ def command_add(user_data_list: list) -> str:
     if not user_data_list[1]:
         raise KeyError
 
-    user_message = get_message(user_data_list)
+    user_message = get_message(user_data_list)  #type: str
 
     if len(user_message.split()) < 2:
         raise ValueError
 
-    contact_name = get_contact_name(user_message)
-    phone = get_contact_phone(user_message)
-    birth = get_contact_birthday(user_message)
+    contact_name = get_contact_name(user_message)  #type: str
+    phones = get_contact_phone(user_message).split()  #type: List[str]
+    birth = get_contact_birthday(user_message)  #type: str
 
-    if not phone or len(birth) > 3:
+    if not phones:
         raise ValueError
 
-    if contact_name in phonebook:
-        exist_record = phonebook[contact_name]
+    if contact_name not in phonebook:
 
-        for ph in phone.split():
-            if not is_uniq_phone(exist_record, ph):
-                raise ValueError
+        if birth:
+            birth = Birthday(birth)
 
-        exist_record.add_new_phone(phone)
-        exist_record.add_birthday(birth)
+        new_contact_name = Name(contact_name)
+        new_contact_phones = [Phone(ph) for ph in phones]
+
+        new_record = Record(new_contact_name, new_contact_phones, birth)
+        phonebook[new_record.name.value] = new_record
         return contact_name
-    
-    new_contact_name = Name(contact_name)
-    new_record = Record(new_contact_name, phone, birth)
-    phonebook[new_record.name.value] = new_record
+
+    exist_record = phonebook[contact_name]
+
+    for ph in phones:
+        if not is_uniq_phone(exist_record, ph):
+            raise ValueError
+
+    change_contact = change_exist_contact(contact_name, exist_record)
+
+    if not change_contact:
+        raise KeyError
+
+    phones = [Phone(ph) for ph in phones]
+    exist_record.add_new_phone(phones)
+
+    if birth is not None:
+        exist_record.add_birthday(Birthday(birth))
+
+    return contact_name
+
+
+def command_add_birth(user_data_list: list) -> str:
+    """
+    Adding a contact's birthday.
+    """
+    if not user_data_list[1]:
+        raise KeyError
+
+    user_message = get_message(user_data_list)  #type: str
+    contact_name = get_contact_name(user_message)  #type: str
+
+    if contact_name not in phonebook:
+        raise KeyError
+
+    birth = get_contact_birthday(user_message)  #type: str
+
+    if not birth:
+        raise ValueError
+
+    exist_record = phonebook[contact_name]  #type: Record
+    exist_record.add_birthday(Birthday(birth))
+
     return contact_name
 
 
@@ -62,13 +120,13 @@ def command_birth(user_data_list: list) -> None:
     if not user_data_list:
         raise KeyError
 
-    user_message = get_message(user_data_list)
-    contact_name = get_contact_name(user_message)
+    user_message = get_message(user_data_list)  #type: str
+    contact_name = get_contact_name(user_message)  #type: str
 
     if contact_name not in phonebook:
         raise KeyError
 
-    record = phonebook[contact_name]
+    record = phonebook[contact_name]  #type: Record
 
     if record.birthday is None:
         raise ValueError
@@ -107,7 +165,7 @@ def command_change(user_data_list: list) -> str:
 
     else:
         new_phone = Phone(new_contact_phone)
-        record  = phonebook[contact_name]
+        record  = phonebook[contact_name]  #type: Record
 
         for idx, rec_phone in enumerate(record.phone):
             if rec_phone.value == contact_phone:
@@ -120,6 +178,23 @@ def command_close_program(_) -> None:
     print('Good bye!\n')
     quit()
 
+def command_del(user_data_list: list) -> str:
+    """
+    Remove contact from the phone book.
+    """
+    if not user_data_list[1]:
+        raise KeyError
+
+    user_message = get_message(user_data_list)  #type: str
+    contact_name = get_contact_name(user_message)  #type: str
+
+    if contact_name in phonebook:
+        phonebook.delete_record(contact_name)
+        return contact_name
+
+    else:
+        raise KeyError
+
 
 def command_hello(_) -> None:
     print('How can I help you?\n')
@@ -128,11 +203,13 @@ def command_hello(_) -> None:
 def command_help(_) -> None:
     print('''
 "hello"                                 - greetings.
-"add <new_name> <new_phone> <birthday>" - adding a new contact.
+"add <new_name> <new_phone(s)> and optionaly[<birthday>]" - adding a new contact.
+"add birth <name> <birthday>            - adding a contact's birthday (01.01.2000).
 "change <name> <old_phone> <new_phone>" - change the phone number of an existing contact.            
 "phone <name>"                          - show phone numbers for an existing contact.
 "birth <name>"                          - show how many days are left until the next birthday.
-"show all"                              - show all saved contacts by 5 contacts per page.
+"show all"                              - show all saved contacts with phone numbers.
+"del <name>"                            - remove contact from phonebook.
 "good bye", "close", "exit"             - exit from the program. 
     ''')
 
@@ -144,16 +221,16 @@ def command_phone(user_data_list: list) -> None:
     """
     if not user_data_list[1]:
         raise KeyError
-    else:
-        user_message = get_message(user_data_list)
-        contact_name = get_contact_name(user_message)
 
-        if contact_name in phonebook:
-            record = phonebook[contact_name]
-            contact_phones = [phone.value for phone in record.phone]
-            print(f'{contact_name}: {", ".join(contact_phones)}\n')
-        else:
-            raise KeyError
+    user_message = get_message(user_data_list)   #type: str
+    contact_name = get_contact_name(user_message)   #type: str
+
+    if contact_name in phonebook:
+        record = phonebook[contact_name]  #type: Record
+        contact_phones = [phone.value for phone in record.phone]
+        print(f'{contact_name}: {", ".join(contact_phones)}\n')
+    else:
+        raise KeyError
 
 
 def command_show_all(_) -> None:
@@ -195,26 +272,21 @@ def get_command(some_data: list) -> str:
     return user_command
 
 
-def get_contact_birthday(some_string: str) -> list or None:
+def get_contact_birthday(some_string: str) -> str or None:
     """
     Getting the date of birth from the data transmitted by the user.
     """
     data_lst = some_string.split()
-    all_parse_birth = []
+    birth = None
 
     if len(data_lst) > 1:
 
         for data in data_lst[::-1]:
             clear_data = normalize_msg(data)
-            if clear_data.isdigit() and len(clear_data) <= 8:
-                day = int(clear_data[:2])
-                month = int(clear_data[2:4])
-                year = int(clear_data[4:])
+            if clear_data.isdigit() and len(clear_data) == 8:
+                birth = clear_data
 
-                parse_birth = [year, month, day]
-                all_parse_birth.extend(parse_birth)
-
-    return all_parse_birth
+    return birth
 
 
 @input_error
@@ -259,9 +331,9 @@ def get_contact_phone(some_string: str) -> str:
             else:
                 break
 
-        phone = ' '.join(phone_data)
+        phones = ' '.join(phone_data)
 
-    return phone
+    return phones
 
 
 @input_error
@@ -277,13 +349,19 @@ def get_message(some_data: list) -> str:
 
 
 def is_uniq_phone(exist_record: Record, phone: str) -> bool:
+    """
+    Checks the uniqueness of a contact's phone number.
+    """
     for ph in exist_record.phone:  #type: List[Phone]
         if phone == ph.value:
             return False
     return True
 
 
-def normalize_msg(message):
+def normalize_msg(message: str) -> str:
+    """
+    Clears a string of unnecessary characters.
+    """
     symbols = '-+=_./\\'
     for symb in symbols:
         message = message.replace(symb, '')
@@ -308,7 +386,7 @@ def parse_command_and_message(user_input: str) -> list:
 
 
 @input_error
-def run_command(user_data_list: list) -> None:
+def run_command(user_data_list: list) -> tuple:
     """
     Run a command received from the user.
     """
@@ -339,9 +417,11 @@ if __name__ == '__main__':
 
     phonebook = AddressBook()
     PROGRAM_CMD = {
+        'add birth': command_add_birth, 
         'add': command_add, 
         'birth': command_birth,
         'change': command_change, 
+        'del': command_del, 
         'phone': command_phone,
         'hello': command_hello,
         'help': command_help,
