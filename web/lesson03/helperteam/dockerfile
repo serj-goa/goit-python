@@ -1,0 +1,10 @@
+FROM python:latest
+
+MAINTAINER Serhii Borodin "bsy.prog@gmail.com"
+
+COPY . /helperteam
+
+WORKDIR /helperteam
+
+ENTRYPOINT ["python"]
+CMD ["main.py"]
