@@ -1,8 +1,10 @@
 import json
+import mimetypes
 import pathlib
 import socket
 import urllib.parse
-import mimetypes
+
+from datetime import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 BASE_DIR = pathlib.Path()
@@ -24,16 +26,18 @@ class HTTPHandler(BaseHTTPRequestHandler):
 
         body = urllib.parse.unquote_plus(body.decode())
         payload = {key: value for key, value in [el.split('=') for el in body.split('&')]}
+        new_data = {str(datetime.now()): payload}
+        print(new_data)
 
         with open(BASE_DIR.joinpath('storage/data.json'), encoding='utf-8') as fd:
             json_file = fd.read()
 
             if not json_file:
-                storage_data = []
+                storage_data = {}
             else:
                 storage_data = json.loads(json_file)
 
-            storage_data.append(payload)
+            storage_data.update(new_data)
 
         with open(BASE_DIR.joinpath('storage/data.json'), 'w', encoding='utf-8') as fd:
             json.dump(storage_data, fd, ensure_ascii=False)
@@ -97,4 +101,11 @@ def run(server=HTTPServer, handler=HTTPHandler):
 
 
 if __name__ == '__main__':
+    STORAGE_DIR = pathlib.Path().joinpath('storage')
+    FILE_STORAGE = STORAGE_DIR / 'data.json'
+
+    if not FILE_STORAGE.exists():
+        with open(FILE_STORAGE, 'w') as fd:
+            pass
+
     run()
